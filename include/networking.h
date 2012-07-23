@@ -53,6 +53,8 @@ Message create_join_msg();
 Message wrap_as_partymsg(Message msg);
 bool send_msg(Message msg);
 void del_msg(Message msg);
+void send_join_msg();
+void send_quit_msg();
 
 bool zmq_sendmsg(char *buf, int buf_len);
 

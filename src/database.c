@@ -116,6 +116,12 @@ int init_pq()
 		goto pq_cleanup;
 	}
 
+	res = PQprepare(conn, "is_online_by_id", "select location from player_stats where id = ($1);", 1, NULL);
+	if (PQresultStatus(res) != PGRES_COMMAND_OK)
+	{
+		goto pq_cleanup;
+	}
+
 	PQclear(res);
 	res = PQprepare(conn, "check_passwd", "select true from player_logins where id = $1 and passwd = crypt(cast($2 as text), passwd);", 2, NULL);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK)

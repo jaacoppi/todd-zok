@@ -84,6 +84,27 @@ bool get_id()
 	return ret;
 }
 
+// if this player is online, return true, otherwise return false
+// parameter: player id
+bool is_online(int id)
+{
+	int ret = false;
+	PGresult *res;
+	char *playerid = itoa(id);
+	const char *params[1] = {playerid};
+
+	res = PQexecPrepared(conn, "is_online_by_id", 1, params, NULL, NULL, 0);
+		if (PQresultStatus(res) == PGRES_TUPLES_OK)
+		{
+
+			int online = atoi(PQgetvalue(res, 0, 0));  
+				if (online == LOC_ONLINE)
+					ret = true;
+		}
+	PQclear(res);
+	return ret;
+}
+
 bool check_passwd()
 {
 	bool ret = false;
@@ -387,6 +408,16 @@ bool get_player()
 	}
 	if (get_id())
 	{
+	// at this point, check if player is already online
+	// if yes, don't allow join
+	// TODO: what if player drops out and is perma-LOC_ONLINE? ACK system by SQL?
+		if (is_online(player.id))
+			{
+			printw(_("\n\nGet lost you impostor! I happen to know that %s passed by here just recently.\n"), player.name);
+			refresh();
+			return false;
+			}
+
 		for (int retries = 0; retries < RETRY_LIMIT; retries++)
 		{
 			sleep(1);
@@ -561,8 +592,10 @@ int main(int argc, char *argv[])
 	return_code = EXIT_SUCCESS; // returned from game, success
 
 cleanup:
-	// send a quit msg to everybody
-	send_quit_msg();
+	// if returning from game, send the game an exit message
+	// if game init fails, don't send anything
+	if (return_code == EXIT_SUCCESS)
+		send_quit_msg();
 
 	cleanup_zmq();
 	cleanup_pq();
