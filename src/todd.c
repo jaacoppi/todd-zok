@@ -435,6 +435,8 @@ void execute_action(unsigned char cmd_char)
 */
 void enter_game()
 {
+	// send a join msg to everybody
+	send_join_msg();
 	ncurs_location();
 	playing = true;
 	while (playing)
@@ -559,6 +561,9 @@ int main(int argc, char *argv[])
 	return_code = EXIT_SUCCESS; // returned from game, success
 
 cleanup:
+	// send a quit msg to everybody
+	send_quit_msg();
+
 	cleanup_zmq();
 	cleanup_pq();
 	player.name = NULL; /* without this, free(player.name) segfaults. TODO: figure this one out */
@@ -568,3 +573,5 @@ cleanup:
 	printf("\n"); /* cleaner exit: user console is undistorted by ncurses stuff */
 	return return_code;
 }
+
+

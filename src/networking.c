@@ -18,6 +18,32 @@ Message create_chat_msg(char *body, size_t len)
 	return msg;
 }
 
+// send a join message to everybody
+void send_join_msg()
+{
+	Message msg;
+	size_t buf_len = sizeof(JOINMSG_PREFIX) + sizeof('|') + NAME_MAX_LENGTH + sizeof('\0');
+	char *buf = malloc(buf_len);
+	msg.body_len = snprintf(buf, buf_len, "%s|%s", JOINMSG_PREFIX, player.name) + 1; // +1 null terminator
+	msg.body = buf;
+	send_msg(msg);
+        del_msg(msg);
+	return;
+}
+
+// send a quit message to everybody
+void send_quit_msg()
+{
+	Message msg;
+	size_t buf_len = sizeof(QUITMSG_PREFIX) + sizeof('|') + NAME_MAX_LENGTH + sizeof('\0');
+	char *buf = malloc(buf_len);
+	msg.body_len = snprintf(buf, buf_len, "%s|%s", QUITMSG_PREFIX, player.name) + 1; // +1 null terminator
+	msg.body = buf;
+	send_msg(msg);
+        del_msg(msg);
+	return;
+}
+
 Message create_ctrl_msg(char *body, size_t len)
 {
 	Message msg;
@@ -140,6 +166,17 @@ bool init_zmq()
 	}
 
 	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, DEBUGMSG_PREFIX, sizeof(DEBUGMSG_PREFIX)-1)) // strip null terminator 
+	{
+		return false;
+	}
+
+	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, JOINMSG_PREFIX, sizeof(JOINMSG_PREFIX)-1)) // strip null terminator 
+	{
+		return false;
+	}
+
+
+	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, QUITMSG_PREFIX, sizeof(QUITMSG_PREFIX)-1)) // strip null terminator 
 	{
 		return false;
 	}

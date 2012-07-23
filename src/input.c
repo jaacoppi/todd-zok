@@ -17,9 +17,19 @@ void parse_and_print_chatmsg(char *msg)
 {
 	char *prefix = strtok_r(NULL, "|", &msg);
 
-	if (strcmp(prefix, "chat") == 0) {
+	if (strcmp(prefix, CHATMSG_PREFIX) == 0) {
 		char *nick = strtok_r(NULL, "|", &msg);
 		ncurs_log_chatmsg(msg, nick);
+	}
+
+	if (strcmp(prefix, JOINMSG_PREFIX) == 0) {
+		char *joining_plr = strtok_r(NULL, "|", &msg);
+		ncurs_log_sysmsg(_("%s has entered the realm"), joining_plr);
+	}
+
+	if (strcmp(prefix, QUITMSG_PREFIX) == 0) {
+		char *leaving_plr = strtok_r(NULL, "|", &msg);
+		ncurs_log_sysmsg(_("%s has left the realm"), leaving_plr);
 	}
 }
 

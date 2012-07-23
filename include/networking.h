@@ -9,6 +9,8 @@
 #define CHATMSG_PREFIX "chat"
 #define DEBUGMSG_PREFIX "debug"
 #define CTRLMSG_PREFIX "ctrl"
+#define JOINMSG_PREFIX "join"
+#define QUITMSG_PREFIX "quit"
 
 bool init_zmq();
 void cleanup_zmq();
@@ -47,6 +49,7 @@ struct Message
 
 Message create_chat_msg(char *body, size_t len);
 Message create_ctrl_msg(char *body, size_t len);
+Message create_join_msg();
 Message wrap_as_partymsg(Message msg);
 bool send_msg(Message msg);
 void del_msg(Message msg);
