@@ -21,13 +21,19 @@ void parse_and_print_chatmsg(char *msg)
 		char *nick = strtok_r(NULL, "|", &msg);
 		ncurs_log_chatmsg(msg, nick);
 	}
+}
 
-	if (strcmp(prefix, JOINMSG_PREFIX) == 0) {
+void parse_ctrlmsg(char *msg)
+{
+	char *prefix = strtok_r(NULL, "|", &msg);
+	prefix = strtok_r(NULL, "|", &msg);
+
+	if (strcmp(prefix, JOINMSG) == 0) {
 		char *joining_plr = strtok_r(NULL, "|", &msg);
 		ncurs_log_sysmsg(_("%s has entered the realm"), joining_plr);
 	}
 
-	if (strcmp(prefix, QUITMSG_PREFIX) == 0) {
+	if (strcmp(prefix, QUITMSG) == 0) {
 		char *leaving_plr = strtok_r(NULL, "|", &msg);
 		ncurs_log_sysmsg(_("%s has left the realm"), leaving_plr);
 	}
@@ -35,7 +41,7 @@ void parse_and_print_chatmsg(char *msg)
 
 bool todd_getchar(unsigned char *c)
 {
-	zmq_pollitem_t items [3];
+	zmq_pollitem_t items [4];
 	items[0].socket = chat_socket;
 	items[0].events = ZMQ_POLLIN;
 	items[1].socket = NULL;
@@ -43,10 +49,12 @@ bool todd_getchar(unsigned char *c)
 	items[1].events = ZMQ_POLLIN;
 	items[2].socket = party_socket;
 	items[2].events = ZMQ_POLLIN;
+	items[3].socket = ctrl_socket;
+	items[3].events = ZMQ_POLLIN;
 	/* Poll for events indefinitely */
 	do
 	{
-		int rc = zmq_poll (items, 3, -1);
+		int rc = zmq_poll (items, 4, -1);
 		if (rc < 0)
 		{
 			return false;
@@ -64,6 +72,15 @@ bool todd_getchar(unsigned char *c)
 			parse_and_print_chatmsg(msg+11); // skip partyprefix
 			free(msg);
 		}
+
+		if (items[3].revents & ZMQ_POLLIN)
+		{
+			char *msg = try_recv_msg(ctrl_socket);
+			parse_ctrlmsg(msg); 
+			free(msg);
+		}
+
+
 	} while (!(items[1].revents & ZMQ_POLLIN));
 	unsigned char dummy;
 	if (c == NULL) c = &dummy;

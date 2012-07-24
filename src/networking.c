@@ -21,11 +21,9 @@ Message create_chat_msg(char *body, size_t len)
 // send a join message to everybody
 void send_join_msg()
 {
-	Message msg;
-	size_t buf_len = sizeof(JOINMSG_PREFIX) + sizeof('|') + NAME_MAX_LENGTH + sizeof('\0');
-	char *buf = malloc(buf_len);
-	msg.body_len = snprintf(buf, buf_len, "%s|%s", JOINMSG_PREFIX, player.name) + 1; // +1 null terminator
-	msg.body = buf;
+        char msg_out[40];
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%s", JOINMSG, player.name)+1 + NAME_MAX_LENGTH;
+	Message msg = create_ctrl_msg(msg_out, len);
 	send_msg(msg);
         del_msg(msg);
 	return;
@@ -34,11 +32,9 @@ void send_join_msg()
 // send a quit message to everybody
 void send_quit_msg()
 {
-	Message msg;
-	size_t buf_len = sizeof(QUITMSG_PREFIX) + sizeof('|') + NAME_MAX_LENGTH + sizeof('\0');
-	char *buf = malloc(buf_len);
-	msg.body_len = snprintf(buf, buf_len, "%s|%s", QUITMSG_PREFIX, player.name) + 1; // +1 null terminator
-	msg.body = buf;
+        char msg_out[40];
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%s", QUITMSG, player.name)+1 + NAME_MAX_LENGTH;
+	Message msg = create_ctrl_msg(msg_out, len);
 	send_msg(msg);
         del_msg(msg);
 	return;
@@ -117,6 +113,7 @@ char *try_recv_msg(void *sock)
 void *push_socket = NULL;
 void *chat_socket = NULL;
 void *party_socket = NULL;
+void *ctrl_socket = NULL;
 void *zmq_context = NULL;
 bool zmq_python_up();
  
@@ -155,28 +152,29 @@ bool init_zmq()
 		return false;
 	}
 
+	// control
+	if (!(ctrl_socket = zmq_socket(zmq_context, ZMQ_SUB)))
+	{
+		return false;
+	}
+	if (zmq_connect(ctrl_socket, "tcp://localhost:5559"))
+	{
+		return false;
+	}
+
+
+
 	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, CHATMSG_PREFIX, sizeof(CHATMSG_PREFIX)-1)) // strip null terminator
 	{
 		return false;
 	}
 
-	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, CTRLMSG_PREFIX, sizeof(CTRLMSG_PREFIX)-1)) // strip null terminator
+	if (zmq_setsockopt(ctrl_socket, ZMQ_SUBSCRIBE, CTRLMSG_PREFIX, sizeof(CTRLMSG_PREFIX)-1)) // strip null terminator
 	{
 		return false;
 	}
 
 	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, DEBUGMSG_PREFIX, sizeof(DEBUGMSG_PREFIX)-1)) // strip null terminator 
-	{
-		return false;
-	}
-
-	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, JOINMSG_PREFIX, sizeof(JOINMSG_PREFIX)-1)) // strip null terminator 
-	{
-		return false;
-	}
-
-
-	if (zmq_setsockopt(chat_socket, ZMQ_SUBSCRIBE, QUITMSG_PREFIX, sizeof(QUITMSG_PREFIX)-1)) // strip null terminator 
 	{
 		return false;
 	}
@@ -193,6 +191,7 @@ void cleanup_zmq()
 	zmq_close(chat_socket);
 	zmq_close(push_socket);
 	zmq_close(party_socket);
+	zmq_close(ctrl_socket);
 	zmq_term(zmq_context);
 }
 
@@ -209,7 +208,7 @@ bool zmq_python_up()
 	char msg_out[40];
 	size_t len = snprintf(&msg_out[0], 40, "%s:%x", MAGIC, token)+1;
 	zmq_pollitem_t items [2];
-	items[0].socket = chat_socket;
+	items[0].socket = ctrl_socket;
 	items[0].events = ZMQ_POLLIN;
 
 		Message msg_foo = create_ctrl_msg(msg_out, len);
@@ -229,7 +228,7 @@ bool zmq_python_up()
 			continue;
 		}
 		if (items[0].revents & ZMQ_POLLIN)
-			msg = try_recv_msg(chat_socket);
+			msg = try_recv_msg(ctrl_socket);
 
 		if (msg == NULL)
 		{

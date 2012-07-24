@@ -6,11 +6,11 @@
 #define PUSH_PORT 5558
 #define CHAT_PORT 5559
 
-#define CHATMSG_PREFIX "chat"
+#define CHATMSG_PREFIX 	"chat"
 #define DEBUGMSG_PREFIX "debug"
-#define CTRLMSG_PREFIX "ctrl"
-#define JOINMSG_PREFIX "join"
-#define QUITMSG_PREFIX "quit"
+#define CTRLMSG_PREFIX 	"ctrl"
+#define JOINMSG 	"join"
+#define QUITMSG 	"quit"
 
 bool init_zmq();
 void cleanup_zmq();

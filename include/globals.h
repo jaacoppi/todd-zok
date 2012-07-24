@@ -23,6 +23,7 @@ extern int playing;
 extern void *push_socket;
 extern void *chat_socket;
 extern void *party_socket;
+extern void *ctrl_socket;
 extern void *zmq_context;
 extern Character player;
 extern Party player_party;
