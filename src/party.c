@@ -1,7 +1,9 @@
 #include <zmq.h>
 #include <syslog.h>
+#include <string.h>
 
 #include "globals.h"
+#include "ui.h"
 
 // update party members as given in parameters. Return 1 if succesful, calling function handles printing
 // called when joining a party and when leaving a party
@@ -65,3 +67,19 @@ void set_party(unsigned int id)
 }
 
 
+// returns true if parameter name is a partymember
+// returns false if not
+bool is_partymember(char *name)
+{
+// if the player doesn't have partymembers, the name values are NULL
+// -> don't strcmp NULL values
+if (partymember1.name != NULL)
+	if (strcmp(name,partymember1.name) == 0)
+		return true;
+
+if (partymember2.name != NULL)
+	if (strcmp(name, partymember2.name) == 0)
+		return true;
+
+return false;
+}

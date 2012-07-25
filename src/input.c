@@ -30,12 +30,24 @@ void parse_ctrlmsg(char *msg)
 
 	if (strcmp(prefix, JOINMSG) == 0) {
 		char *joining_plr = strtok_r(NULL, "|", &msg);
-		ncurs_log_sysmsg(_("%s has entered the realm"), joining_plr);
+		
+		// don't show join msg when you're joining
+		if (strcmp(joining_plr, player.name) != 0)
+		{
+			if (is_partymember(joining_plr))
+				ncurs_log_sysmsg(_("Partymember %s has entered the realm"), joining_plr);
+			else
+				ncurs_log_sysmsg(_("%s has entered the realm"), joining_plr);
+		}
 	}
 
 	if (strcmp(prefix, QUITMSG) == 0) {
 		char *leaving_plr = strtok_r(NULL, "|", &msg);
-		ncurs_log_sysmsg(_("%s has left the realm"), leaving_plr);
+		// player quits after sending this msg, so it will never be echoed back to the quitting player
+		if (is_partymember(leaving_plr))
+			ncurs_log_sysmsg(_("Partymember %s has left the realm"), leaving_plr);
+		else
+			ncurs_log_sysmsg(_("%s has left the realm"), leaving_plr);
 	}
 }
 

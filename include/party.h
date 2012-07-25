@@ -9,6 +9,7 @@ bool unsub_party(unsigned int id);
 bool sub_party(unsigned int id);
 void set_party(unsigned int id);
 int return_party_member_names(int partyid, char *member1, char *member2, char *member3);
+bool is_partymember(char *name);
 
 typedef struct Party Party;
 struct Party {
