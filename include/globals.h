@@ -48,5 +48,5 @@ extern WINDOW *command_win;
 extern int y_size;
 extern int gamew_logw_sep;
 
-
+extern bool is_online (int id);
 #endif

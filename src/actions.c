@@ -258,25 +258,25 @@ void ac_view_stats()
 	
 	if (player_party.id != 0)
 	{
-		wprintw(game_win, _("Party id: %d\n"), player_party.id);
 		wprintw(game_win, _("Party name: %s\n"), player_party.name);
-		wprintw(game_win, _("Party members: "));
+		wprintw(game_win, _("Party members:\n"));
 
-		// how many members?
-		wprintw(game_win, "%s",player.name);
-		
+		// print out party member names and <ONLINE> if they are
 		if (partymember1.id != 0)
 			{
-			wprintw(game_win, ", ");
 			wprintw(game_win, "%s",partymember1.name);
-			}	
+			if (is_online(partymember1.id))
+				wprintw(game_win, _(" <ONLINE>"));
+			wprintw(game_win, "\n");
+			}
 
 		if (partymember2.id != 0)
 			{
-			wprintw(game_win, ", ");
 			wprintw(game_win, "%s",partymember2.name);
-			}	
-		
+			if (is_online(partymember2.id))
+				wprintw(game_win, _(" <ONLINE>"));
+			wprintw(game_win, "\n");
+			}
 	}
 	else
 		wprintw(game_win, "Player is not in a party");
