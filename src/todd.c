@@ -551,10 +551,28 @@ int main(int argc, char *argv[])
 
 			// load party member id's, then use load_player_data for them
 
-			// TODO: this assumes that player is always first in the list, not true
+			// don't confuse you and your party members
+			int id0 = 0, id1 = 0, id2 = 0;
+			id0 = atoi(PQgetvalue(player_partyres,0,2));
+			id1 = atoi(PQgetvalue(player_partyres,0,3));
+			id2 = atoi(PQgetvalue(player_partyres,0,4));
+			if (id0 == player.id)
+				{
+				partymember1.id = id1;
+				partymember2.id = id2;
+				}
 
-			partymember1.id = atoi(PQgetvalue(player_partyres,0,3));
-			partymember2.id = atoi(PQgetvalue(player_partyres,0,4));
+			if (id1 == player.id)
+				{
+				partymember1.id = id0;
+				partymember2.id = id2;
+				}
+
+			if (id2 == player.id)
+				{
+				partymember1.id = id0;
+				partymember2.id = id1;
+				}
 
                 }
 		else // there's no parties, load defaults
