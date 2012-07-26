@@ -109,12 +109,11 @@ int fight_check_dead()
 		return 0; // redraw combat stuff
 }
 
-void create_enemy()
+int create_enemy(int level, int random_enemy)
 {
-	/* randomly choose an enemy from enemylist, based on player dungeon level */
-	int random_enemy = rand() % ENEMY_COUNT;
 	// NOTE THAT dungeon level 0 = town, 1 = first level and so on. Therefore, dungeon_lvl - 1;
-	memcpy(&enemy, &enemylist[player.dungeon_lvl - 1][random_enemy], sizeof(enemy));
+	memcpy(&enemy, &enemylist[level - 1][random_enemy], sizeof(enemy));
+	return random_enemy; // for party members to load the same enemy
 }
 
 
@@ -189,6 +188,24 @@ void use_skill(int keypress)
 
 	if (keypress <= 4 && strcmp(player.skill[keypress]->name,"Unused") != 0)
 	{
+		// in single player combat, just calculate the damage
+
+		// in multiplayer combat, the party leader waits for other people to commit
+		
+		// TODO: check if this is a multiplayer game (is_online(id)
+
+		//
+		// wait for everyone in the game to commit the skill
+		int allready = 0;
+		while (!allready)
+		{
+		// TODO...		
+		}
+
+		// TODO: fix this part for multiplayer as well
+		/////////
+
+		// go through the skills and calculate damage
 		// Player attacks
 		skill_effect(&player, &enemy, player.skill[keypress]);
 		// Enemy attack
@@ -197,10 +214,12 @@ void use_skill(int keypress)
 		/* 3. check for dead player/enemy */
 		int enemy_dead = fight_check_dead();
 
+
 		/* 4. update stats and display them IF THE ENEMY DIDN'T DIE */
 		if (!enemy_dead) {
-			ncurs_fightinfo(&player, 0);
-			ncurs_fightinfo(&enemy, 3);
+			ac_update_fightscreen();
+
+//////		CHANGE EVERYTHING MULTIPLAYER COMPATIBLE UNTIL HERE ///////
 		}
 		wrefresh(game_win);
 	}

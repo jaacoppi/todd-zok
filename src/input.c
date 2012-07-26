@@ -28,6 +28,14 @@ void parse_ctrlmsg(char *msg)
 	char *prefix = strtok_r(NULL, "|", &msg);
 	prefix = strtok_r(NULL, "|", &msg);
 
+	if (strcmp(prefix, FIGHTMSG) == 0)
+		{
+		char *level = strtok_r(NULL, "|", &msg);
+		char *enemy = strtok_r(NULL, "|", &msg);
+		int level_int = atoi(level);
+		int enemy_int = atoi(enemy);
+		ac_fightscreen(level_int, enemy_int);
+		}
 	if (strcmp(prefix, JOINMSG) == 0) {
 		char *joining_plr = strtok_r(NULL, "|", &msg);
 		

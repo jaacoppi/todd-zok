@@ -3,7 +3,7 @@
 
 #include "element.h"
 
-void create_enemy();
+int create_enemy(int level, int random_enemy);
 void use_skill(int keypress);
 int check_wuxing_time(Element dmg_element);
 

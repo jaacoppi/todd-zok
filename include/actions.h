@@ -2,6 +2,7 @@
 #define ACTIONS_H
 
 #include "location.h"
+#include "networking.h"
 
 void ac_blank();
 void ac_dungeons();
@@ -10,6 +11,8 @@ void ac_dungeons_glow();
 void ac_dungeons_enter();
 void ac_shrine_heal_1();
 void ac_shrine_heal_all();
+void ac_fightscreen(int level, int random_enemy);
+void ac_update_fightscreen();
 void ac_fight_0();
 void ac_fight_1();
 void ac_fight_2();

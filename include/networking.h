@@ -11,6 +11,7 @@
 #define CTRLMSG_PREFIX 	"ctrl"
 #define JOINMSG 	"join"
 #define QUITMSG 	"quit"
+#define	FIGHTMSG	"fight"
 
 bool init_zmq();
 void cleanup_zmq();
@@ -55,7 +56,7 @@ bool send_msg(Message msg);
 void del_msg(Message msg);
 void send_join_msg();
 void send_quit_msg();
-
+void party_call_to_arms(int level, int enemyid);
 bool zmq_sendmsg(char *buf, int buf_len);
 
 char *try_recv_msg(void *sock);

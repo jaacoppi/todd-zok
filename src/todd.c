@@ -96,10 +96,13 @@ bool is_online(int id)
 	res = PQexecPrepared(conn, "is_online_by_id", 1, params, NULL, NULL, 0);
 		if (PQresultStatus(res) == PGRES_TUPLES_OK)
 		{
-
-			int online = atoi(PQgetvalue(res, 0, 0));  
+			int row_count = PQntuples(res);
+			if (row_count > 0)
+				{
+				int online = atoi(PQgetvalue(res, 0, 0));  
 				if (online == LOC_ONLINE)
 					ret = true;
+				}
 		}
 	PQclear(res);
 	return ret;
@@ -556,22 +559,30 @@ int main(int argc, char *argv[])
 			id0 = atoi(PQgetvalue(player_partyres,0,2));
 			id1 = atoi(PQgetvalue(player_partyres,0,3));
 			id2 = atoi(PQgetvalue(player_partyres,0,4));
-			if (id0 == player.id)
+			if (id0 == player.id)	// you are player1 in table parties
 				{
 				partymember1.id = id1;
 				partymember2.id = id2;
 				}
 
-			if (id1 == player.id)
+			if (id1 == player.id)	// you are player2 in table parties
 				{
 				partymember1.id = id0;
 				partymember2.id = id2;
+				// need to reorganize player_party
+				player_party.characters[0] = &partymember1;
+				player_party.characters[1] = &player;
+				player_party.characters[2] = &partymember2;
+
 				}
 
-			if (id2 == player.id)
+			if (id2 == player.id)	// you are player3 in table parties
 				{
 				partymember1.id = id0;
 				partymember2.id = id1;
+				player_party.characters[0] = &partymember1;
+				player_party.characters[1] = &partymember2;
+				player_party.characters[2] = &player;
 				}
 
                 }

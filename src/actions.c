@@ -14,6 +14,7 @@
 #include "party.h"
 #include "combat.h"
 #include "database.h"
+#include "actions.h"
 
 void set_player_location(Location* loc)
 {
@@ -113,18 +114,50 @@ void ac_dungeons_action()
 			// a player corpse
 			// a random event
 		if (check_rnd_events() != 1) {
-			set_player_location(&loc_fight);
-			create_enemy();
-			ncurs_log_sysmsg(_("You encounter a %s!"), enemy.name);
+			// this part is done by the party leader only (actually atm anybody who starts a fight
+			// create the enemy, tell everyone to come and fight it
+			// randomly choose an enemy from enemylist, based on player dungeon level
+			int random_enemy = rand() % ENEMY_COUNT;
+			// sent everyone a message
+			party_call_to_arms(player.dungeon_lvl,random_enemy);
 
-			ncurs_fightinfo(&player, 0);
-			ncurs_fightinfo(&enemy, 3);
+			// currently the client who sends the call to arms also receives it, so everyone will be at ac_fightscreen() soon
 		}
 	}
 	else
 	{
 		ncurs_log_sysmsg(_("You feel too tired to fight"));
 	}
+}
+
+// TODO: rename
+void ac_fightscreen(int level, int random_enemy)
+{
+create_enemy(level, random_enemy);
+ncurs_log_sysmsg(_("You encounter a %s!"), enemy.name);
+
+// for commands
+set_player_location(&loc_fight);
+
+void ac_updatefightscreen();
+
+}
+
+void ac_updatefightscreen()
+{
+// for displaying who is here
+ncurs_fightinfo(&enemy, 3);     // TODO: multiple enemies
+                        
+// currently all online partymembers are forced to join
+if(is_online(player_party.characters[0]->id))
+	ncurs_fightinfo(player_party.characters[0], 0); // you're always there
+
+if(is_online(player_party.characters[1]->id))
+	ncurs_fightinfo(player_party.characters[1], 1); // you're always there
+
+if(is_online(player_party.characters[2]->id))
+	ncurs_fightinfo(player_party.characters[2], 2); // you're always there
+
 }
 
 /* helper functions so I don't need to rewrite that much code */
