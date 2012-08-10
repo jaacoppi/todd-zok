@@ -7,6 +7,7 @@
 #include "character.h"
 #include "input.h"
 #include "party.h"
+#include "combat.h"
 
 #define _(x) gettext(x)
 #define NAME_MIN_LENGTH 4
@@ -29,7 +30,7 @@ extern Character player;
 extern Party player_party;
 extern Character partymember1;
 extern Character partymember2;
-
+extern int randomseed;
 extern Character enemy;
 extern PGconn *conn;
 

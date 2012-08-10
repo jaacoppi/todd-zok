@@ -3,6 +3,7 @@
 Character player;
 Character partymember1;
 Character partymember2;
+int randomseed;
 
 Party player_party = {
 	.id = 0,	// NOTE that currently 0 means no party

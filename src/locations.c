@@ -257,7 +257,7 @@ Location loc_fight = {
 			'r',
 			"",
 			"Run",
-			&ac_return_to_town
+			&ac_run_fight
 		},
 		{
 			'v',

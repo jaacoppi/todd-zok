@@ -207,6 +207,9 @@ void load_player_data(Character *load_plr)
 			{
 				syslog(LOG_WARNING, "col_cursor: %d != col_count: %d\r\n", col_cursor, col_count);
 			}
+			// for multiplayer combat
+			load_plr->turnready = -1;
+			load_plr->incombat = false;
 		}
 		else
 		{
@@ -476,6 +479,7 @@ void enter_game()
 	while (playing)
 	{
 		unsigned char cmd_char;
+		// get input from keyboard or network
 		bool getch_res = todd_getchar(&cmd_char);
 		if (getch_res == false)
 		{
@@ -483,6 +487,7 @@ void enter_game()
 			playing = false;
 			break;
 		}
+		// execute the action from keyboard, if any
 		execute_action(cmd_char);
 	}
 
@@ -499,7 +504,6 @@ int main(int argc, char *argv[])
 	intro_ascii();
 	int return_code = EXIT_FAILURE;
 	openlog("ToDD", LOG_PID|LOG_PERROR, LOG_USER);
-	srand((unsigned int)time(NULL));
 
 	if (!init_pq())
 	{
@@ -610,6 +614,10 @@ int main(int argc, char *argv[])
 	if (partymember2.id != 0)
 		load_player_data(&partymember2);
 
+
+	// init random seed here, and in party_call_to_arms for party fighting
+	randomseed = (unsigned int) time(NULL);	// randomseed is a global holding the seed
+	srand(randomseed);
 
 	// load the actual game
 	init_ui();

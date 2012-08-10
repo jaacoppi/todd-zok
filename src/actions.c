@@ -114,12 +114,9 @@ void ac_dungeons_action()
 			// a player corpse
 			// a random event
 		if (check_rnd_events() != 1) {
-			// this part is done by the party leader only (actually atm anybody who starts a fight
-			// create the enemy, tell everyone to come and fight it
-			// randomly choose an enemy from enemylist, based on player dungeon level
-			int random_enemy = rand() % ENEMY_COUNT;
-			// sent everyone a message
-			party_call_to_arms(player.dungeon_lvl,random_enemy);
+			// party_call_to_arms call all online partymembers to join the fight automatically
+			// if you're alone, it does nothing
+			party_call_to_arms();
 
 			// currently the client who sends the call to arms also receives it, so everyone will be at ac_fightscreen() soon
 		}
@@ -131,23 +128,29 @@ void ac_dungeons_action()
 }
 
 // TODO: rename
-void ac_fightscreen(int level, int random_enemy)
+void ac_fightscreen()
 {
-create_enemy(level, random_enemy);
-ncurs_log_sysmsg(_("You encounter a %s!"), enemy.name);
+	// since the party should have the same random seed, all party members will end up with the same random enemy
+	create_enemy();
+	// set the incombat mode for everybody online
+	for (int i = 0; i <= 2; i++)
+		if (is_online(player_party.characters[i]->id))
+			player_party.characters[i]->incombat = true;
 
-// for commands
-set_player_location(&loc_fight);
+	ncurs_log_sysmsg(_("You encounter a %s!"), enemy.name);
 
-void ac_updatefightscreen();
+	// for commands - must be before ac_update_fightscreen (clears the screen)
+	set_player_location(&loc_fight);
 
+	// display fighters
+	ac_update_fightscreen();
+	
 }
 
-void ac_updatefightscreen()
+void ac_update_fightscreen()
 {
 // for displaying who is here
 ncurs_fightinfo(&enemy, 3);     // TODO: multiple enemies
-                        
 // currently all online partymembers are forced to join
 if(is_online(player_party.characters[0]->id))
 	ncurs_fightinfo(player_party.characters[0], 0); // you're always there
@@ -313,6 +316,10 @@ void ac_view_stats()
 	}
 	else
 		wprintw(game_win, "Player is not in a party");
+
+	// debug: rand test
+	for (int i = 0; i < 10; i++)
+		wprintw(game_win, "%d / ", rand() % 1000);
 
 	wrefresh(game_win);
 
@@ -900,6 +907,20 @@ void ac_graveyard_view()
 
 }
 
+// print a syslog message, inform party members, etc
+void ac_run_fight()
+{
+player.incombat = false;
+ncurs_log_sysmsg(_("You ran from a fight, coward!"));
+// TODO: inform party members here
+
+// return to proper dungeon level
+// ac_return_to_town actually takes you down a level, so increase by one first
+player.dungeon_lvl++;
+ac_return_to_town();
+}
+
+
 // the name is currently misleading: returns -1 dungeon levels
 void ac_return_to_town()
 {
@@ -909,20 +930,28 @@ void ac_return_to_town()
 
 		case 1: // to town
 		{
-		player.dungeon_lvl = 0;
-		set_player_location(&loc_town);
-		break;
+			player.dungeon_lvl = 0;
+			set_player_location(&loc_town);
+			break;
 		}
 
 		case 2: // to first dungeon level
 		{
-		player.dungeon_lvl = 1;
-		set_player_location(&loc_dungeons_level1);
-		break;
+			player.dungeon_lvl = 1;
+			set_player_location(&loc_dungeons_level1);
+			break;
 		}
 
-		default:
+		case 3: 
+		{
+			player.dungeon_lvl = 2;
+			set_player_location(&loc_dungeons_level2);
 			break;
+		}
+
+		default: 
+			break;
+
 	}
 }
 

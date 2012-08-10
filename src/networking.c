@@ -31,10 +31,20 @@ void send_join_msg()
 
 // this currently works for 1 enemy only
 // basically informs other players that the enemy is enemylist[dungeon_level][enemyid]
-void party_call_to_arms(int dungeon_level, int enemyid)
+void party_call_to_arms()
 {
+	// a call to arms yell contains:
+	// FIGHTMSG prefix + random seed
+	
+	// first, set the random seed correctly
+	// must be done here so random events and other stuff don't mess up the randoms
+	// the player who call people to join the fight sets the random seed and gives it to everyone
+
+	randomseed = (unsigned int) time(NULL); // randomseed is a global holding the seed
+	srand(randomseed);
+
         char msg_out[40];
-        size_t len = snprintf(&msg_out[0], 40, "|%s|%d|%d", FIGHTMSG, dungeon_level,enemyid)+1 + NAME_MAX_LENGTH;
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%d", FIGHTMSG,randomseed)+1;
 	Message msg = create_ctrl_msg(msg_out, len);
 	send_msg(msg);
         del_msg(msg);
@@ -45,8 +55,20 @@ void party_call_to_arms(int dungeon_level, int enemyid)
 // send a quit message to everybody
 void send_quit_msg()
 {
+
         char msg_out[40];
         size_t len = snprintf(&msg_out[0], 40, "|%s|%s", QUITMSG, player.name)+1 + NAME_MAX_LENGTH;
+	Message msg = create_ctrl_msg(msg_out, len);
+	send_msg(msg);
+        del_msg(msg);
+	return;
+}
+
+// send a join message to everybody
+void send_turnready()
+{
+        char msg_out[40];
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%s|%d", TURNREADY, player.name, player.turnready) +1 + NAME_MAX_LENGTH;
 	Message msg = create_ctrl_msg(msg_out, len);
 	msg = wrap_as_partymsg(msg);
 	send_msg(msg);

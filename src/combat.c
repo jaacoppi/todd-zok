@@ -38,6 +38,7 @@ int fight_check_dead()
 		enemy_dead = true;
 	if (enemy_dead)
 	{
+		player.incombat = false; // don't return to combat any more
 		int money = 7;
 		int exp = 10;
 		player.money += money;
@@ -109,10 +110,18 @@ int fight_check_dead()
 		return 0; // redraw combat stuff
 }
 
-int create_enemy(int level, int random_enemy)
+int create_enemy()
 {
+	// TODO: get proper dungeon level
+	// ways to do this: 
+		// * only party leader can start a fight (follow the leader -mode)
+		// * ask players if they want to join the fight
+	int dungeon_lvl = 1;
+
+	/* randomly choose an enemy from enemylist, based on player dungeon level */
+	int random_enemy = rand() % ENEMY_COUNT;
 	// NOTE THAT dungeon level 0 = town, 1 = first level and so on. Therefore, dungeon_lvl - 1;
-	memcpy(&enemy, &enemylist[level - 1][random_enemy], sizeof(enemy));
+	memcpy(&enemy, &enemylist[dungeon_lvl - 1][random_enemy], sizeof(enemy));
 	return random_enemy; // for party members to load the same enemy
 }
 
@@ -130,6 +139,7 @@ int dmg_calc_blocking(Character *dest, Element dmg_type)
 
 void skill_effect(Character *source, Character *dest, Skills *skill)
 {
+	ncurs_log_sysmsg("%s used %s",source->name, skill->name);
 	int dmg = 0;
 	/* calculate normal damage done based on skill + weapon */
 	dmg += skill->damage;
@@ -170,6 +180,7 @@ void skill_effect(Character *source, Character *dest, Skills *skill)
 
 void use_skill(int keypress)
 {
+	player.turnready = -1; // when set to [0..3] it means a skill is used this turn
 	/* this function is entered with a keypress from ac_fight0 and so on*/
 	/* the keypress is used to determine what attack is used */
 
@@ -188,40 +199,18 @@ void use_skill(int keypress)
 
 	if (keypress <= 4 && strcmp(player.skill[keypress]->name,"Unused") != 0)
 	{
-		// in single player combat, just calculate the damage
-
-		// in multiplayer combat, the party leader waits for other people to commit
-		
-		// TODO: check if this is a multiplayer game (is_online(id)
-
-		//
+		// Players attack
 		// wait for everyone in the game to commit the skill
-		int allready = 0;
-		while (!allready)
-		{
-		// TODO...		
-		}
-
-		// TODO: fix this part for multiplayer as well
-		/////////
-
-		// go through the skills and calculate damage
-		// Player attacks
-		skill_effect(&player, &enemy, player.skill[keypress]);
-		// Enemy attack
-		skill_effect(&enemy, &player, enemy.skill[0]);
-
-		/* 3. check for dead player/enemy */
-		int enemy_dead = fight_check_dead();
-
-
-		/* 4. update stats and display them IF THE ENEMY DIDN'T DIE */
-		if (!enemy_dead) {
-			ac_update_fightscreen();
-
-//////		CHANGE EVERYTHING MULTIPLAYER COMPATIBLE UNTIL HERE ///////
-		}
-		wrefresh(game_win);
+	
+		// go through all online players. Once a player commits a turn,
+		// a TURNREADY is sent
+		player.turnready = keypress;
+		// if a multiplayer game, go through send_turnready, otherwise directly to combat
+		// TODO: will hang if a party member joins game during combat
+		if (is_online(partymember1.id) || is_online(partymember2.id))
+			send_turnready();
+		else
+			combat_seeifready();
 	}
 	else
 	{
@@ -237,7 +226,7 @@ int check_wuxing_time(Element dmg_element)
 	// done in the database to keep the multiplayer in sync, localtime() wouldn't suit this
 	PGresult *res;
 	res = PQexecPrepared(conn, "get_hour", 0, NULL, NULL, NULL, 0);
-		if (PQresultStatus(res) != PGRES_COMMAND_OK)
+		if (PQresultStatus(res) != PGRES_TUPLES_OK)
 			syslog(LOG_DEBUG,_("get_hour failed"));
 
 	int hour = atoi(PQgetvalue(res,0,0)); /* return now() - last_logout */
@@ -331,4 +320,76 @@ http://www.chuntianacademy.com/wu-xing
 
 // no bonus
 return 0;
+}
+
+void combat_seeifready()
+{
+// loop through all the players in combat
+int allready = 1;
+
+
+if (is_online(partymember1.id) || is_online(partymember2.id))	// it's multiplayer combat
+	{
+	// loop through all the effects of all party members taking part in the fight
+	for (int i = 0; i <= 2; i++)
+		if (player_party.characters[i]->incombat)
+			{
+			if (player_party.characters[i]->turnready < 0)
+				{
+				ncurs_log_sysmsg("still waiting for: %s",player_party.characters[i]->name);
+				allready = 0;	// still waiting for a keypress
+				}
+			}
+	}
+else	// it's single player combat
+	{
+	allready = 1;
+	}
+
+if (allready) // if everyone is ready, do combat stuff
+	{
+	ncurs_log_sysmsg(_("all player have committed turns, calculating effects"));
+	ncurs_log_sysmsg(_("Combat resolution============================"));
+	// combat stuff begins here
+
+	for (int i = 0; i <= 2; i++)
+		if (player_party.characters[i]->incombat)
+			skill_effect(player_party.characters[i], &enemy, player_party.characters[i]->skill[player_party.characters[i]->turnready]);
+
+	// enemy attacks:
+	// choose which player to attack
+	int dest = 0;
+	int players = 0;
+	for (int i = 0; i <= 2; i++)
+		if (player_party.characters[i]->incombat)
+			players++;
+	// players now holds the number of players in combat, randomize one of them
+	int i = 0;
+	while (i == 0)
+		{		
+			dest = rand() % players;
+			// dest holds a number from 0..players in combat
+			if (player_party.characters[dest]->incombat) // this player is in combat -> acceptable target
+				i = 1;
+		}
+	ncurs_log_sysmsg("here: %d",dest);
+
+	// TODO: random enemy skill (enemies should have more than one skill..
+	skill_effect(&enemy, player_party.characters[dest], enemy.skill[0]);
+
+	ncurs_log_sysmsg(_("============================================="));
+	// combat stuff ends here
+
+	// reset turnready
+	for (int i = 0; i <= 2; i++)
+		if (player_party.characters[i]->incombat)
+			player_party.characters[i]->turnready = -1;	
+
+	/* 3. check for dead player/enemy */
+	int enemy_dead = fight_check_dead();
+	/* 4. update stats and display them IF THE ENEMY DIDN'T DIE */
+	if (!enemy_dead)
+		ac_update_fightscreen();
+
+	}
 }

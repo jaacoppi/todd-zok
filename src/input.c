@@ -23,6 +23,45 @@ void parse_and_print_chatmsg(char *msg)
 	}
 }
 
+void parse_partymsg(char *msg)
+{
+	char *prefix = strtok_r(NULL, "|", &msg);
+	prefix = strtok_r(NULL, "|", &msg);
+
+	if (strcmp(prefix, CHATMSG_PREFIX) == 0)	// if it's a chat msg just pritn it
+		parse_and_print_chatmsg(msg);
+
+	if (strcmp(prefix, CTRLMSG_PREFIX) == 0)
+		{
+		char *ctrlprefix = strtok_r(NULL, "|", &msg);
+
+		// a party member has committed turn in combat
+		if (strcmp(ctrlprefix, TURNREADY) == 0)
+			{
+				// who committed the turn
+				char *nick = strtok_r(NULL, "|", &msg);	
+				// what skill
+				char *skill = strtok_r(NULL, "|", &msg);
+
+				// set player_party.characters[i].turnready to skill
+				for (int i = 0; i <= 2; i++)
+					if (strcmp(nick, player_party.characters[i]->name) == 0)
+						{
+						player_party.characters[i]->turnready = atoi(skill);
+						ncurs_log_sysmsg("Player %s committed turn", nick);
+						break;
+						}
+				// TODO: does this make sense?			
+		                // if in combat, calculate combat stuff
+		                if (player.incombat)
+		                        combat_seeifready();
+
+			}
+		
+		}
+
+}
+
 void parse_ctrlmsg(char *msg)
 {
 	char *prefix = strtok_r(NULL, "|", &msg);
@@ -30,12 +69,13 @@ void parse_ctrlmsg(char *msg)
 
 	if (strcmp(prefix, FIGHTMSG) == 0)
 		{
-		char *level = strtok_r(NULL, "|", &msg);
-		char *enemy = strtok_r(NULL, "|", &msg);
-		int level_int = atoi(level);
-		int enemy_int = atoi(enemy);
-		ac_fightscreen(level_int, enemy_int);
+		// set random seed and fight
+		char *seed = strtok_r(NULL, "|", &msg);
+		randomseed = atoi(seed);
+		srand(randomseed);
+		ac_fightscreen();
 		}
+
 	if (strcmp(prefix, JOINMSG) == 0) {
 		char *joining_plr = strtok_r(NULL, "|", &msg);
 		
@@ -89,7 +129,7 @@ bool todd_getchar(unsigned char *c)
 		{
 			char *msg = try_recv_msg(party_socket);
 			// TODO real prefix parsing. avoid buffer overrun
-			parse_and_print_chatmsg(msg+11); // skip partyprefix
+			parse_partymsg(msg);
 			free(msg);
 		}
 

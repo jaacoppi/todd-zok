@@ -22,6 +22,8 @@ struct Character {
 	Weapons *weapon;
 	Skills *skill[4];
 	int dungeon_lvl; // dungeon_lvl 0 == town, 1 = forest level etc
+	int turnready;	// used for multiplayer combat - stores keypress
+	bool incombat;
 };
 
 #endif //CHARACTER_H
