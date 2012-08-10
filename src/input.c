@@ -48,7 +48,9 @@ void parse_partymsg(char *msg)
 					if (strcmp(nick, player_party.characters[i]->name) == 0)
 						{
 						player_party.characters[i]->turnready = atoi(skill);
+						// display info about the committed turn
 						ncurs_log_sysmsg("Player %s committed turn", nick);
+						ncurs_fightinfo(player_party.characters[i], i);
 						break;
 						}
 				// TODO: does this make sense?			

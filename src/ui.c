@@ -316,6 +316,13 @@ void ncurs_fightinfo(Character *chr, int index)
 		mvwaddch(win, name_counter/(fight_statw_width-2), (name_counter%(fight_statw_width-2))+1, *c);
 		name_counter++;
 	}
+
+	// committed turn already? - note that this uses hardcoded values
+	if (chr->turnready < 0)
+		mvwprintw(win,6,1,"Waiting..");
+	else
+		mvwprintw(win,6,1,"COMMITTED");
+
 	if (fight_statw_width < 20)
 	{
 		/* TODO: this is ugly! */
