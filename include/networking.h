@@ -13,7 +13,7 @@
 #define QUITMSG 	"quit"
 #define	FIGHTMSG	"fight"
 #define TURNREADY	"turnready"
-
+#define RUNMSG		"coward"
 bool init_zmq();
 void cleanup_zmq();
 bool zmq_python_up();
@@ -58,7 +58,8 @@ void del_msg(Message msg);
 void send_join_msg();
 void send_quit_msg();
 void party_call_to_arms();
-void party_returnseed(char *nick);
+void send_turnready();
+void send_plr_ran();
 bool zmq_sendmsg(char *buf, int buf_len);
 
 char *try_recv_msg(void *sock);

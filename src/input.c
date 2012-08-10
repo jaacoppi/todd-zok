@@ -63,6 +63,14 @@ void parse_partymsg(char *msg)
 		                        combat_seeifready();
 
 			}
+		// when a player has ran from a fight
+		if (strcmp(ctrlprefix, RUNMSG) == 0)
+			{
+			char *nick = strtok_r(NULL, "|", &msg);	
+			// only care about this if you are in combat
+			if (player.incombat)
+				combat_plr_ran(nick);
+			}
 		
 		}
 

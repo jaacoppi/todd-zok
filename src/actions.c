@@ -912,7 +912,8 @@ void ac_run_fight()
 {
 player.incombat = false;
 ncurs_log_sysmsg(_("You ran from a fight, coward!"));
-// TODO: inform party members here
+if (is_online(partymember1.id) || !is_online(partymember2.id)) // send a message when in multiplayer
+	send_plr_ran(player);
 
 // return to proper dungeon level
 // ac_return_to_town actually takes you down a level, so increase by one first

@@ -47,6 +47,7 @@ extern WINDOW *background_win;
 extern WINDOW *skills_win;
 extern WINDOW *command_win;
 extern WINDOW *log_win;
+extern WINDOW *fight_stat_win[6];
 extern int y_size;
 extern int gamew_logw_sep;
 

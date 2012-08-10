@@ -393,3 +393,28 @@ if (allready) // if everyone is ready, do combat stuff
 
 	}
 }
+
+void combat_plr_ran(char *nick)
+{
+// find out which screen to delete from fight window - naturally only affects multiplayer
+
+// do nothing if the running player is you
+if (strcmp(nick, player.name) == 0)
+	return;
+
+ncurs_log_sysmsg(_("%s ran from a fight. What a coward!"),nick);
+int index;
+for (index = 0; index <=2; index++)
+        if (strcmp(player_party.characters[index]->name, nick) == 0)
+                break;
+
+wclear(fight_stat_win[index]);
+wrefresh(fight_stat_win[index]);
+
+// set the incombat to false
+for (int i = 0; i <= 2; i++)
+	if (player_party.characters[i]->name != NULL)
+		if (strcmp(player_party.characters[i]->name,nick) == 0)
+			player_party.characters[i]->incombat = 0;
+
+}

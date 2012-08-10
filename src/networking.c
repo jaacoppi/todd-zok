@@ -76,6 +76,18 @@ void send_turnready()
 	return;
 }
 
+// when a player runs from a fight
+void send_plr_ran()
+{
+        char msg_out[40];
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%s", RUNMSG, player.name) +1 + NAME_MAX_LENGTH;
+	Message msg = create_ctrl_msg(msg_out, len);
+	msg = wrap_as_partymsg(msg);
+	send_msg(msg);
+        del_msg(msg);
+	return;
+}
+
 Message create_ctrl_msg(char *body, size_t len)
 {
 	Message msg;
@@ -285,5 +297,4 @@ bool zmq_python_up()
 	syslog(LOG_WARNING, "ZMQ chat test retry count exceeded\r\n");
 	return false;
 }
-
 
