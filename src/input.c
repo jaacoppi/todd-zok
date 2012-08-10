@@ -15,12 +15,9 @@ extern int toggle_chat;
 
 void parse_and_print_chatmsg(char *msg)
 {
-	char *prefix = strtok_r(NULL, "|", &msg);
-
-	if (strcmp(prefix, CHATMSG_PREFIX) == 0) {
-		char *nick = strtok_r(NULL, "|", &msg);
-		ncurs_log_chatmsg(msg, nick);
-	}
+	char *prefix =strtok_r(NULL, "|", &msg);
+	char *nick = strtok_r(NULL, "|", &msg);
+	ncurs_log_chatmsg(msg, nick);
 }
 
 void parse_partymsg(char *msg)
@@ -28,9 +25,16 @@ void parse_partymsg(char *msg)
 	char *prefix = strtok_r(NULL, "|", &msg);
 	prefix = strtok_r(NULL, "|", &msg);
 
-	if (strcmp(prefix, CHATMSG_PREFIX) == 0)	// if it's a chat msg just pritn it
-		parse_and_print_chatmsg(msg);
-
+	// it's a chat message to this party only
+	if (strcmp(prefix, CHATMSG_PREFIX) == 0)	
+		{
+			char *nick = strtok_r(NULL, "|", &msg);
+			wattron(log_win, A_BOLD);
+			char buf[20] = "(party) ";
+			strncat(buf, nick, NAME_MAX_LENGTH);
+			ncurs_log_chatmsg(msg, buf);
+			wattroff(log_win, A_BOLD);
+		}
 	if (strcmp(prefix, CTRLMSG_PREFIX) == 0)
 		{
 		char *ctrlprefix = strtok_r(NULL, "|", &msg);
