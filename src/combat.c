@@ -14,8 +14,6 @@
 #include "database.h"
 #include "element.h"
 
-Character enemy;
-
 extern void set_player_location(Location* loc);
 
 int fight_check_dead()
@@ -24,37 +22,47 @@ int fight_check_dead()
 	// TODO enemy and player codes are almost identical, refactor into a function
 	// bool check_chr_dead(Character *chr); or something
 
-	/* check if enemy dies */
+	// loop through all enemies in combat
 	bool enemy_dead = false;
 	bool enemy_dead_elements = false;
-	for (size_t i = 0; i < ELEM_COUNT; i++)
-	{
-		if (enemy.elements[i] <= 0) {
-			enemy_dead = true;
-			enemy_dead_elements = true;
-		}
-	}
-	if (enemy.health <= 0)
-		enemy_dead = true;
-	if (enemy_dead)
-	{
-		player.incombat = false; // don't return to combat any more
-		int money = 7;
-		int exp = 10;
-		player.money += money;
-		player.experience += exp;
-		werase(game_win);
-		if (enemy_dead_elements)
-			ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), player.name, enemy.name);
-		ncurs_log_sysmsg(_("%s has killed %s!"), player.name, enemy.name);
-		ncurs_log_sysmsg(_("%s received %d coins and %d XP"), player.name, money, exp);
-		ncurs_modal_msg(
-				_("%s is slain!\n\nYou find %d coins on the corpse, and gain %d experience\n"),
-				enemy.name, money, exp);
-		ac_dungeons();
-	}
+	for (int i = 0; i <= 2; i++)
+		{
+			if (enemy_party.characters[i]->incombat)
+				{
+					/* check if enemy dies */
+					for (size_t j = 0; j < ELEM_COUNT; j++)
+						{
+							if (enemy_party.characters[i]->elements[j] <= 0) 
+							{
+								enemy_dead = true;
+								enemy_dead_elements = true;
+							}
+						}
+					if (enemy_party.characters[i]->health <= 0)
+						enemy_dead = true;
+
+				if (enemy_dead)	// TODO: this happens when any of the enemies die..
+					{
+						player.incombat = false; // don't return to combat any more
+						int money = 7;
+						int exp = 10;
+						player.money += money;
+						player.experience += exp;
+						werase(game_win);
+				
+						if (enemy_dead_elements)
+							ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), player.name, enemy_party.characters[i]->name);
+					
+						ncurs_log_sysmsg(_("%s has killed %s!"), player.name, enemy_party.characters[i]->name);
+						ncurs_log_sysmsg(_("%s received %d coins and %d XP"), player.name, money, exp);
+						ncurs_modal_msg(_("%s is slain!\n\nYou find %d coins on the corpse, and gain %d experience\n"),	enemy_party.characters[i]->name, money, exp);
+					ac_dungeons();
+					}
+				}
+			}
 
 	/* check if player dies as well */
+	// TODO: loop through all players, not just yourself
 	bool player_dead = false;
 	bool player_dead_elements = false;
 	for (size_t i = 0; i < 5; i++)
@@ -75,7 +83,8 @@ int fight_check_dead()
 		if (player_dead_elements) // elements below 0, don't die but faint only
 		{
 			db_player_location(LOC_FAINTED);
-			ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), enemy.name, player.name);
+			// TODO: which enemy..
+			ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), enemy_party.characters[0]->name, player.name);
 			mvwprintw(game_win, 6, 0, _("The world around you starts to spin.\nYou sense a great imbalance inside you."));
 
 			wattron(game_win, A_BOLD);
@@ -88,8 +97,8 @@ int fight_check_dead()
 		{
 			/* first, set the player location to "DEAD" */
 			db_player_location(LOC_DEAD);
-		
-			ncurs_log_sysmsg(_("%s has killed %s!"), enemy.name, player.name);
+			// TODO: which enemy
+			ncurs_log_sysmsg(_("%s has killed %s!"), enemy_party.characters[0]->name, player.name);
 			mvwprintw(game_win, 6, 0, _("The world fades around you as you fall to the ground, \nbleeding."));
 			wattron(game_win, A_BOLD);
 			wattron(game_win, A_UNDERLINE);
@@ -110,7 +119,7 @@ int fight_check_dead()
 		return 0; // redraw combat stuff
 }
 
-int create_enemy()
+int create_enemy(Character *enemy)
 {
 	// TODO: get proper dungeon level
 	// ways to do this: 
@@ -121,8 +130,10 @@ int create_enemy()
 	/* randomly choose an enemy from enemylist, based on player dungeon level */
 	int random_enemy = rand() % ENEMY_COUNT;
 	// NOTE THAT dungeon level 0 = town, 1 = first level and so on. Therefore, dungeon_lvl - 1;
-	memcpy(&enemy, &enemylist[dungeon_lvl - 1][random_enemy], sizeof(enemy));
-	return random_enemy; // for party members to load the same enemy
+	memcpy(enemy, &enemylist[dungeon_lvl - 1][random_enemy], sizeof(Character));
+
+	enemy->incombat = 1;
+	return 1;
 }
 
 
@@ -352,9 +363,10 @@ if (allready) // if everyone is ready, do combat stuff
 	ncurs_log_sysmsg(_("Combat resolution============================"));
 	// combat stuff begins here
 
+	// TODO: target enemy
 	for (int i = 0; i <= 2; i++)
 		if (player_party.characters[i]->incombat)
-			skill_effect(player_party.characters[i], &enemy, player_party.characters[i]->skill[player_party.characters[i]->turnready]);
+			skill_effect(player_party.characters[i], enemy_party.characters[0],player_party.characters[i]->skill[player_party.characters[i]->turnready]);
 
 	// enemy attacks:
 	// choose which player to attack
@@ -365,17 +377,24 @@ if (allready) // if everyone is ready, do combat stuff
 			players++;
 	// players now holds the number of players in combat, randomize one of them
 	int i = 0;
-	while (i == 0)
-		{		
-			dest = rand() % players;
-			// dest holds a number from 0..players in combat
-			if (player_party.characters[dest]->incombat) // this player is in combat -> acceptable target
-				i = 1;
-		}
-	ncurs_log_sysmsg("here: %d",dest);
 
-	// TODO: random enemy skill (enemies should have more than one skill..
-	skill_effect(&enemy, player_party.characters[dest], enemy.skill[0]);
+	// enemies attack here
+	for (int j = 0; j <= 2; j++)
+	{
+		if (enemy_party.characters[j]->incombat)	// only enemies who are in combat attack
+		{
+			while (i == 0)	// loop until you find an acceptable target, then attack
+			{		
+				dest = rand() % players;
+				// dest holds a number from 0..players in combat
+				if (player_party.characters[dest]->incombat) // this player is in combat -> acceptable target
+					i = 1;
+			}
+			// TODO: random enemy skill (enemies should have more than one skill..
+			skill_effect(enemy_party.characters[j], player_party.characters[dest], enemy_party.characters[j]->skill[0]);
+		}
+	}
+
 
 	ncurs_log_sysmsg(_("============================================="));
 	// combat stuff ends here
@@ -417,4 +436,12 @@ for (int i = 0; i <= 2; i++)
 		if (strcmp(player_party.characters[i]->name,nick) == 0)
 			player_party.characters[i]->incombat = 0;
 
+}
+
+// returns 1 if combat is multiplayer (party) or 0 when single
+int combat_ismulti() {
+if (is_online(partymember1.id) || is_online(partymember2.id))
+	return 1;
+
+return 0;
 }

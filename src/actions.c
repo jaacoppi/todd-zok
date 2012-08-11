@@ -130,14 +130,32 @@ void ac_dungeons_action()
 // TODO: rename
 void ac_fightscreen()
 {
-	// since the party should have the same random seed, all party members will end up with the same random enemy
-	create_enemy();
+	// since the party should have the same random seed, all party members will end up with the same random enemy/enemies
+
+	// for now, only allow multiple enemies on party combat
+	// TODO: balance the game
+	if (combat_ismulti())
+		{
+		// random 1-3
+		int enemy_number = rand() % 2;
+		// create enemies
+		for (int i = 0; i <= enemy_number; i++)
+			{
+			create_enemy(enemy_party.characters[i]);
+			ncurs_log_sysmsg(_("You encounter a %s!"), enemy_party.characters[i]->name);
+			}
+		}
+	else	// single player, only one enemy
+		{
+		create_enemy(enemy_party.characters[0]);
+		ncurs_log_sysmsg(_("You encounter a %s!"), enemy_party.characters[0]->name);
+		}
+
 	// set the incombat mode for everybody online
 	for (int i = 0; i <= 2; i++)
 		if (is_online(player_party.characters[i]->id))
 			player_party.characters[i]->incombat = true;
 
-	ncurs_log_sysmsg(_("You encounter a %s!"), enemy.name);
 
 	// for commands - must be before ac_update_fightscreen (clears the screen)
 	set_player_location(&loc_fight);
@@ -149,17 +167,22 @@ void ac_fightscreen()
 
 void ac_update_fightscreen()
 {
-// for displaying who is here
-ncurs_fightinfo(&enemy, 3);     // TODO: multiple enemies
+// display stats for the players / enemies participating
+
+for (int i = 0; i <= 2; i++)
+	if (enemy_party.characters[i]->incombat)
+		ncurs_fightinfo(enemy_party.characters[i], 3+i);     
+
+
 // currently all online partymembers are forced to join
 if(is_online(player_party.characters[0]->id))
-	ncurs_fightinfo(player_party.characters[0], 0); // you're always there
+	ncurs_fightinfo(player_party.characters[0], 0); 
 
 if(is_online(player_party.characters[1]->id))
-	ncurs_fightinfo(player_party.characters[1], 1); // you're always there
+	ncurs_fightinfo(player_party.characters[1], 1); 
 
 if(is_online(player_party.characters[2]->id))
-	ncurs_fightinfo(player_party.characters[2], 2); // you're always there
+	ncurs_fightinfo(player_party.characters[2], 2);
 
 }
 
@@ -324,15 +347,13 @@ void ac_view_stats()
 	wrefresh(game_win);
 
 	/* if stats are viewed during a fight, getch() and display char info again */
-	/* TODO: player and enemy hardcoded to 0 and 3 */
 	if (player.location == &loc_fight) {
 		wprintw(game_win,"\n\n<MORE>");
 		wrefresh(game_win);
 		todd_getchar(NULL);
 		werase(game_win);
 		wrefresh(game_win);
-		ncurs_fightinfo(&player, 0);
-		ncurs_fightinfo(&enemy, 3);
+		ac_update_fightscreen(); // draw all combatants again
 	}
 }
 

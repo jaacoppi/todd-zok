@@ -3,6 +3,10 @@
 Character player;
 Character partymember1;
 Character partymember2;
+Character enemy1;
+Character enemy2;
+Character enemy3;
+
 int randomseed;
 
 Party player_party = {
@@ -12,5 +16,13 @@ Party player_party = {
 		&player,
 		&partymember1,
 		&partymember2
+	}
+};
+
+Party enemy_party = {	// enemy party only needs enemy characters
+	.characters = {
+		&enemy1,
+		&enemy2,
+		&enemy3
 	}
 };

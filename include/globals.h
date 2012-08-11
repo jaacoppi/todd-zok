@@ -28,10 +28,13 @@ extern void *ctrl_socket;
 extern void *zmq_context;
 extern Character player;
 extern Party player_party;
+extern Party enemy_party;
 extern Character partymember1;
 extern Character partymember2;
 extern int randomseed;
-extern Character enemy;
+extern Character enemy1;
+extern Character enemy2;
+extern Character enemy3;
 extern PGconn *conn;
 
 extern char g_partyname[30];
