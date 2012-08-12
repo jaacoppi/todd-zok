@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <stdbool.h>
 
 #include "combat.h"
 #include "actions.h"
@@ -208,8 +209,19 @@ void use_skill(int keypress)
 	   Water causes +WOOD, -FIRE
 	   */
 
+	// TODO: !succesful_target, return loop here?
 	if (keypress <= 4 && strcmp(player.skill[keypress]->name,"Unused") != 0)
 	{
+		// Target the attack if it can be targeted
+		int succesful_target = 0;
+		if (is_targetable(player.skill[keypress]))
+			succesful_target = target_attack(player.skill[keypress]);
+
+		if (!succesful_target)
+			return; // go back to select a different skill? TODO: How?			
+
+		//// end targeting
+
 		// Players attack
 		// wait for everyone in the game to commit the skill
 	
@@ -218,7 +230,8 @@ void use_skill(int keypress)
 		player.turnready = keypress;
 		// if a multiplayer game, go through send_turnready, otherwise directly to combat
 		// TODO: will hang if a party member joins game during combat
-		if (is_online(partymember1.id) || is_online(partymember2.id))
+	//	if (is_online(partymember1.id) || is_online(partymember2.id))
+		if (combat_ismulti())
 			send_turnready();
 		else
 			combat_seeifready();
@@ -339,7 +352,8 @@ void combat_seeifready()
 int allready = 1;
 
 
-if (is_online(partymember1.id) || is_online(partymember2.id))	// it's multiplayer combat
+//if (is_online(partymember1.id) || is_online(partymember2.id))	// it's multiplayer combat
+if (combat_ismulti())	// it's multiplayer combat
 	{
 	// loop through all the effects of all party members taking part in the fight
 	for (int i = 0; i <= 2; i++)
@@ -363,12 +377,12 @@ if (allready) // if everyone is ready, do combat stuff
 	ncurs_log_sysmsg(_("Combat resolution============================"));
 	// combat stuff begins here
 
-	// TODO: target enemy
+	// players attack enemies
 	for (int i = 0; i <= 2; i++)
 		if (player_party.characters[i]->incombat)
 			skill_effect(player_party.characters[i], enemy_party.characters[0],player_party.characters[i]->skill[player_party.characters[i]->turnready]);
 
-	// enemy attacks:
+	// enemies attack players
 	// choose which player to attack
 	int dest = 0;
 	int players = 0;
@@ -444,4 +458,43 @@ if (is_online(partymember1.id) || is_online(partymember2.id))
 	return 1;
 
 return 0;
+}
+
+// returns true if the skill can be targeted
+// TODO: implement
+bool is_targetable(Skills *skill)
+{
+return true;
+}
+
+int target_attack(Skills *skill)
+{
+typedef struct enemies enemies;
+struct enemies
+{
+	char *name;
+};
+enemies enemylist[3];
+
+// create a listselect structure of enemies in combat
+int enemynr = 0;
+for (int i = 0; i <=2; i++)
+	if (enemy_party.characters[i]->incombat)
+		{
+		enemylist[enemynr].name = enemy_party.characters[i]->name;
+		enemynr++;
+		}
+// enemynr now contains the number of enemies -> number of possible selections
+// enemylist now contains all the enemy names (no blanks)
+
+
+// display it
+	wclear(game_win);
+	wprintw(game_win, _("Who do you want to target?\n"));
+	int selection = ncurs_listselect(&(enemylist[0].name), sizeof(struct enemies), 0, enemynr);
+	wclear(game_win);
+	ac_update_fightscreen();
+	
+// return the used attack
+	return selection;
 }
