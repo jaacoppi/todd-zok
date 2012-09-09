@@ -151,7 +151,7 @@ int dmg_calc_blocking(Character *dest, Element dmg_type)
 
 void skill_effect(Character *source, Character *dest, Skills *skill)
 {
-	ncurs_log_sysmsg("%s used %s",source->name, skill->name);
+	ncurs_log_sysmsg("%s used %s on %s",source->name, skill->name, dest->name);
 	int dmg = 0;
 	/* calculate normal damage done based on skill + weapon */
 	dmg += skill->damage;
@@ -212,15 +212,28 @@ void use_skill(int keypress)
 	// TODO: !succesful_target, return loop here?
 	if (keypress <= 4 && strcmp(player.skill[keypress]->name,"Unused") != 0)
 	{
-		// Target the attack if it can be targeted
-		int succesful_target = 0;
-		if (is_targetable(player.skill[keypress]))
-			succesful_target = target_attack(player.skill[keypress]);
+		int enemynr = 0;
+		for (int i = 0; i <=2; i++)
+	        if (enemy_party.characters[i]->incombat)
+	                enemynr++;
 
-		if (!succesful_target)
-			return; // go back to select a different skill? TODO: How?			
+		// only target if there's more than 1 enemy - enemynr tells us how many we have
+		int succesful_target = -1;
+		player.combattarget = 0; // reset the target int, by default attack 0
+		if (enemynr > 1)
+			{
+			// Target the attack if it can be targeted
+			if (is_targetable(player.skill[keypress]))
+				succesful_target = target_attack(player.skill[keypress]);
 
-		//// end targeting
+			if (succesful_target == -1)
+				return; // go back to select a different skill? TODO: How?			
+
+			//// end targeting
+			// succesful_target now holds the enemy id - store it to your char array
+			player.combattarget = succesful_target;
+			}
+
 
 		// Players attack
 		// wait for everyone in the game to commit the skill
@@ -229,7 +242,7 @@ void use_skill(int keypress)
 		// a TURNREADY is sent
 		player.turnready = keypress;
 		// if a multiplayer game, go through send_turnready, otherwise directly to combat
-		// TODO: will hang if a party member joins game during combat
+		// TODO: will hang if a party member joins game during combat - check for incombat instead of is_online
 	//	if (is_online(partymember1.id) || is_online(partymember2.id))
 		if (combat_ismulti())
 			send_turnready();
@@ -371,16 +384,17 @@ else	// it's single player combat
 	allready = 1;
 	}
 
+// COMBAT EFFECTS START HERE
 if (allready) // if everyone is ready, do combat stuff
 	{
-	ncurs_log_sysmsg(_("all player have committed turns, calculating effects"));
+	ncurs_log_sysmsg(_("all players have committed turns, calculating effects"));
 	ncurs_log_sysmsg(_("Combat resolution============================"));
 	// combat stuff begins here
 
 	// players attack enemies
 	for (int i = 0; i <= 2; i++)
 		if (player_party.characters[i]->incombat)
-			skill_effect(player_party.characters[i], enemy_party.characters[0],player_party.characters[i]->skill[player_party.characters[i]->turnready]);
+			skill_effect(player_party.characters[i], enemy_party.characters[player_party.characters[i]->combattarget],player_party.characters[i]->skill[player_party.characters[i]->turnready]);
 
 	// enemies attack players
 	// choose which player to attack
@@ -404,6 +418,7 @@ if (allready) // if everyone is ready, do combat stuff
 				if (player_party.characters[dest]->incombat) // this player is in combat -> acceptable target
 					i = 1;
 			}
+
 			// TODO: random enemy skill (enemies should have more than one skill..
 			skill_effect(enemy_party.characters[j], player_party.characters[dest], enemy_party.characters[j]->skill[0]);
 		}
@@ -495,6 +510,9 @@ for (int i = 0; i <=2; i++)
 	wclear(game_win);
 	ac_update_fightscreen();
 	
-// return the used attack
-	return selection;
+// TODO: what to do if an enemy dies -> listselect doesn't correspond to actual enemy_party.characters[i] anymore
+// the int selection actually means "the Xth player that is incombat
+
+return selection;
+
 }

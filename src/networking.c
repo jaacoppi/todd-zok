@@ -68,7 +68,7 @@ void send_quit_msg()
 void send_turnready()
 {
         char msg_out[40];
-        size_t len = snprintf(&msg_out[0], 40, "|%s|%s|%d", TURNREADY, player.name, player.turnready) +1 + NAME_MAX_LENGTH;
+        size_t len = snprintf(&msg_out[0], 40, "|%s|%s|%d|%d", TURNREADY, player.name, player.turnready, player.combattarget) +1 + NAME_MAX_LENGTH;
 	Message msg = create_ctrl_msg(msg_out, len);
 	msg = wrap_as_partymsg(msg);
 	send_msg(msg);

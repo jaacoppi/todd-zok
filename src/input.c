@@ -44,14 +44,17 @@ void parse_partymsg(char *msg)
 			{
 				// who committed the turn
 				char *nick = strtok_r(NULL, "|", &msg);	
-				// what skill
+				// what skill used
 				char *skill = strtok_r(NULL, "|", &msg);
+				// what target chosen
+				char *target = strtok_r(NULL, "|", &msg);
 
-				// set player_party.characters[i].turnready to skill
+				// set player_party.characters[i].turnready to chosen skill AND combattarget to chosen target
 				for (int i = 0; i <= 2; i++)
 					if (strcmp(nick, player_party.characters[i]->name) == 0)
 						{
 						player_party.characters[i]->turnready = atoi(skill);
+						player_party.characters[i]->combattarget = atoi(target);
 						// display info about the committed turn
 						ncurs_log_sysmsg("Player %s committed turn", nick);
 						ncurs_fightinfo(player_party.characters[i], i);
