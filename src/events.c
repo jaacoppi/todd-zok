@@ -22,7 +22,6 @@ int check_corpses()
 {
 
 // currently 
-//	* corpse finding is automatic
 //	* always finds the corpse first in the database, boring
 
 	// 1. SQL query for DEAD players
@@ -202,6 +201,7 @@ void ac_ev_oldman_nohelp()
 /* A BAG OF GOLD */
 int ev_bag_of_gold()
 {
+	wclear(game_win);
 	ncurs_modal_msg(_("You find a bag of gold with 100 gold pieces in it!\n"));
 	player.money = player.money +100;
 	return 1;
