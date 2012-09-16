@@ -1,4 +1,5 @@
 TODO:
+	* multicombat: handle players dying
 	* fix unicode / multibyte stuff
 	* players don't die from elemental imbalance, but lose consciousness -> can't login today unless party revives
 		* game over for the day, has to rest some hours (6? 12? 24?)

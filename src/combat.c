@@ -23,11 +23,15 @@ int fight_check_dead()
 	// TODO enemy and player codes are almost identical, refactor into a function
 	// bool check_chr_dead(Character *chr); or something
 
+	bool enemy_dead;
+	bool enemy_dead_elements;
 	// loop through all enemies in combat
-	bool enemy_dead = false;
-	bool enemy_dead_elements = false;
+
 	for (int i = 0; i <= 2; i++)
 		{
+		enemy_dead = false;
+		enemy_dead_elements = false;
+
 			if (enemy_party.characters[i]->incombat)
 				{
 					/* check if enemy dies */
@@ -41,23 +45,40 @@ int fight_check_dead()
 						}
 					if (enemy_party.characters[i]->health <= 0)
 						enemy_dead = true;
-
-				if (enemy_dead)	// TODO: this happens when any of the enemies die..
+			
+				// the current enemy is dead (characters[i])
+				if (enemy_dead)	
 					{
-						player.incombat = false; // don't return to combat any more
+						enemy_party.characters[i]->incombat = false;
+						// TODO: would it look better to display "DEAD" instead of erasing the box?
+						werase(fight_stat_win[3+i]);
+						wrefresh(fight_stat_win[3+i]);
+
 						int money = 7;
 						int exp = 10;
 						player.money += money;
 						player.experience += exp;
-						werase(game_win);
 				
 						if (enemy_dead_elements)
 							ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), player.name, enemy_party.characters[i]->name);
 					
 						ncurs_log_sysmsg(_("%s has killed %s!"), player.name, enemy_party.characters[i]->name);
 						ncurs_log_sysmsg(_("%s received %d coins and %d XP"), player.name, money, exp);
-						ncurs_modal_msg(_("%s is slain!\n\nYou find %d coins on the corpse, and gain %d experience\n"),	enemy_party.characters[i]->name, money, exp);
-					ac_dungeons();
+
+					// if there's no more enemies left, return to dungeons. 
+					int alldead = 1;
+ 					for (int i = 0; i <= 2; i++)
+						if (enemy_party.characters[i]->incombat)
+ 							alldead = 0;
+
+					// if all enemies are dead, the battle is over
+					if (alldead)
+						{
+						player.incombat = false; // don't return to combat any more
+						ncurs_modal_msg(_("All enemies are slain! The battle is over"));
+						return 1;					
+						}
+					// If there's enemies left, the battle continues (i.e. do nothing)
 					}
 				}
 			}
@@ -78,9 +99,7 @@ int fight_check_dead()
 
 	if (player_dead)
 	{
-	
 		wclear (game_win);
-
 		if (player_dead_elements) // elements below 0, don't die but faint only
 		{
 			db_player_location(LOC_FAINTED);
@@ -232,6 +251,15 @@ void use_skill(int keypress)
 			//// end targeting
 			// succesful_target now holds the enemy id - store it to your char array
 			player.combattarget = succesful_target;
+			}
+		else // only one enemy, select that one (might be index 0,1 or 2
+			{
+			for (int i = 0; i <=2; i++)
+			        if (enemy_party.characters[i]->incombat)
+					{
+					player.combattarget = i;
+					break;
+					}
 			}
 
 
@@ -434,11 +462,12 @@ if (allready) // if everyone is ready, do combat stuff
 			player_party.characters[i]->turnready = -1;	
 
 	/* 3. check for dead player/enemy */
-	int enemy_dead = fight_check_dead();
+	int all_enemies_dead = fight_check_dead();
 	/* 4. update stats and display them IF THE ENEMY DIDN'T DIE */
-	if (!enemy_dead)
+	if (!all_enemies_dead)
 		ac_update_fightscreen();
-
+	else
+		ac_dungeons();
 	}
 }
 
