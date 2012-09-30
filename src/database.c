@@ -82,7 +82,7 @@ int init_pq()
 
 
 	// player_stats
-	res = PQprepare(conn, "initdb_player_stats", "create table player_stats (id integer references player_logins(id), location integer default 0, stamina integer default 100, experience integer default 0, money integer default 10, health integer default 10, max_health integer default 10, wood integer default 3, fire integer default 3, earth integer default 3, metal integer default 3, water integer default 3, weapon integer default 999, skill_0 integer default 999, skill_1 integer default 999, skill_2 integer default 999, skill_3 integer default 999, dungeon_level integer default 0);", 0, NULL);	
+	res = PQprepare(conn, "initdb_player_stats", "create table player_stats (id integer references player_logins(id), location integer default 0, stamina integer default 100, money integer default 40, health integer default 10, max_health integer default 10, wood integer default 3, fire integer default 3, earth integer default 3, metal integer default 3, water integer default 3, weapon integer default 999, skill_0 integer default 999, skill_1 integer default 999, skill_2 integer default 999, skill_3 integer default 999, dungeon_level integer default 0);", 0, NULL);	
 	if (PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
 		goto pq_cleanup;
@@ -136,7 +136,7 @@ int init_pq()
 	}
 
 	PQclear(res);
-	res = PQprepare(conn, "save_player", "update player_stats set (stamina, experience, money, health, max_health, wood, fire, earth, metal, water, weapon, skill_0, skill_1, skill_2, skill_3, dungeon_level) = ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) where id = $1;", 17, NULL);
+	res = PQprepare(conn, "save_player", "update player_stats set (stamina, money, health, max_health, wood, fire, earth, metal, water, weapon, skill_0, skill_1, skill_2, skill_3, dungeon_level) = ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) where id = $1;", 16, NULL);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
 		goto pq_cleanup;
@@ -184,7 +184,7 @@ int init_pq()
 		goto pq_cleanup;
 	}
 	PQclear(res);
-	res = PQprepare(conn, "load_player", "select player_logins.name, stamina, experience, money, health, max_health, wood, fire, earth, metal, water, weapon, skill_0, skill_1, skill_2, skill_3, dungeon_level from player_stats, player_logins where player_logins.id = ($1)  AND player_logins.id = player_stats.id;", 1, NULL);
+	res = PQprepare(conn, "load_player", "select player_logins.name, stamina, money, health, max_health, wood, fire, earth, metal, water, weapon, skill_0, skill_1, skill_2, skill_3, dungeon_level from player_stats, player_logins where player_logins.id = ($1)  AND player_logins.id = player_stats.id;", 1, NULL);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
 		goto pq_cleanup;

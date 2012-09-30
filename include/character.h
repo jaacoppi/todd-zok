@@ -13,7 +13,6 @@ struct Character {
 	char *name;
 	Location *location;
 	int stamina;
-	int experience;
 	int money;
 	// TODO add more stats 
 	int health;

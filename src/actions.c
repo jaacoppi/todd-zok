@@ -287,7 +287,6 @@ void ac_view_stats()
 	wrefresh(game_win);
 	wprintw(game_win,"%8s: %10s\n", _("Name"), player.name);
 	wprintw(game_win,"%8s: %10d\n", _("Stamina"), player.stamina);
-	wprintw(game_win,"%8s: %10d\n", _("XP"), player.experience);
 	wprintw(game_win,"%8s: %10d\n", _("Money"), player.money);
 	wprintw(game_win,"%8s: %7d/%2d\n", _("Health"), player.health,player.max_health);
 	wattron(game_win,A_BOLD);
@@ -333,10 +332,6 @@ void ac_view_stats()
 	}
 	else
 		wprintw(game_win, "Player is not in a party");
-
-	// debug: rand test
-	for (int i = 0; i < 10; i++)
-		wprintw(game_win, "%d / ", rand() % 1000);
 
 	wrefresh(game_win);
 

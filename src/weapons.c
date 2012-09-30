@@ -57,7 +57,7 @@ Weapons weapons_list[WEAPON_COUNT] = {
 	},
 	{
 		3,
-		"Dagger of death",
+		"Devil's dagger",
 		ELEM_METAL,
 		4,
 		40

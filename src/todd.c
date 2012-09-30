@@ -171,7 +171,6 @@ void load_player_data(Character *load_plr)
 
 
 			load_plr->stamina = atoi(PQgetvalue(res, 0, col_cursor++));
-			load_plr->experience = atoi(PQgetvalue(res, 0, col_cursor++));
 			load_plr->money = atoi(PQgetvalue(res, 0, col_cursor++));
 			load_plr->health = atoi(PQgetvalue(res, 0, col_cursor++));
 			load_plr->max_health = atoi(PQgetvalue(res, 0, col_cursor++));
@@ -228,7 +227,6 @@ void save_player_data()
 {
 	char *player_id = itoa(player.id);
 	char *stamina = itoa(player.stamina);
-	char *experience = itoa(player.experience);
 	char *money = itoa(player.money);
 	char *health = itoa(player.health);
 	char *max_health = itoa(player.max_health);
@@ -254,10 +252,9 @@ void save_player_data()
 	char *skill_3 = itoa(skills_id[3]);
 
 	char *dungeon_lvl = itoa(player.dungeon_lvl); /* TODO: permadeath, this shouldn't be needed */
-	const char *params[17] = {
+	const char *params[16] = {
 		player_id,
 		stamina,
-		experience,
 		money,
 		health,
 		max_health,
@@ -274,7 +271,7 @@ void save_player_data()
 		dungeon_lvl
 	};
 	PGresult *res;
-	res = PQexecPrepared(conn, "save_player", 17, params, NULL, NULL, 0);
+	res = PQexecPrepared(conn, "save_player", 16, params, NULL, NULL, 0);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
 		syslog(LOG_WARNING, "Player data save failed: %s\r\n", PQresultErrorMessage(res));
@@ -288,7 +285,6 @@ void save_player_data()
 	}
 	free(player_id);
 	free(stamina);
-	free(experience);
 	free(money);
 	free(health);
 	free(max_health);
