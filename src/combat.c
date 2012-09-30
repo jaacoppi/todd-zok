@@ -55,15 +55,14 @@ int fight_check_dead()
 						wrefresh(fight_stat_win[3+i]);
 
 						int money = 7;
-						int exp = 10;
 						player.money += money;
-						player.experience += exp;
 				
 						if (enemy_dead_elements)
 							ncurs_log_sysmsg(_("%s has caused an elemental imbalance in %s"), player.name, enemy_party.characters[i]->name);
 					
 						ncurs_log_sysmsg(_("%s has killed %s!"), player.name, enemy_party.characters[i]->name);
-						ncurs_log_sysmsg(_("%s received %d coins and %d XP"), player.name, money, exp);
+						// TODO: share money from a kill someway
+						ncurs_log_sysmsg(_("%s found %d coins from the body"), player.name, money);
 
 					// if there's no more enemies left, return to dungeons. 
 					int alldead = 1;
@@ -470,6 +469,9 @@ if (allready) // if everyone is ready, do combat stuff
 		{
 		ncurs_clear_fightwindows();
 		ncurs_modal_msg(_("All enemies are slain! The battle is over"));
+		// ac_dungeons makes the player go up a dungeon level
+		// -> to stay at the same level, decrease the level here
+		player.dungeon_lvl--;
 		ac_dungeons();
 		}
 	}
