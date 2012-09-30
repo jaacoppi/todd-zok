@@ -6,7 +6,7 @@ gettext
 pgcrypto module for PostgreSQL
 ncurses
 
-postgreSQL installation:
+	### postgreSQL installation ###
 
 # yum group install "PostgreSQL Database"
 # yum install postrgesql-contrib
@@ -14,15 +14,21 @@ postgreSQL installation:
 # postgresql-setup initdb
 Initializing database ... OK
 # service postgresql start
+
+	### create the database user ###
+
 # sudo -u postgres createuser todd
 Shall the new role be a superuser? (y/n) n
 Shall the new role be allowed to create databases? (y/n) n
 Shall the new role be allowed to create more new roles? (y/n) n
+
+	### create the database ###
 # sudo -u postgres createdb -O todd todd
 # sudo -u postgres psql todd
 psql (9.1.3)
 Type "help" for help.
 
+	### enable the cryptocraphic extension as the postgresql superuser ###
 todd=# create extension pgcrypto;
 CREATE EXTENSION
 todd=# \q
@@ -34,5 +40,10 @@ local sameuser todd trust
 $ psql todd todd
 psql (9.1.3)
 Type "help" for help.
+
+
+        ### FAQ ###
+error: Postgres init error: ERROR:  function crypt(text, text) does not exist
+solution: enable pgcrypto
 
 
