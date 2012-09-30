@@ -37,16 +37,44 @@ Weapons weapons_list[WEAPON_COUNT] = {
 		0,
 		"Stick of doom",
 		ELEM_WOOD,
-		3,
-		9
+		5,
+		50
 	},
 
 	{
 		1,
-		"Axe of assault",
-		ELEM_METAL,
-		5,
+		"Cane of pain",
+		ELEM_WOOD,
+		10,
 		100
+	},
+	{
+		2,
+		"Barbarian staff",
+		ELEM_WOOD,
+		30,
+		500
+	},
+	{
+		3,
+		"Dagger of death",
+		ELEM_METAL,
+		4,
+		40
+	},
+	{
+		4,
+		"Able's sabre",
+		ELEM_METAL,
+		8,
+		80
+	},
+	{
+		5,
+		"Death sword",
+		ELEM_METAL,
+		25,
+		400
 	},
 	{
 		999,
