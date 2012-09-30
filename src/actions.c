@@ -173,15 +173,10 @@ for (int i = 0; i <= 2; i++)
 	if (enemy_party.characters[i]->incombat)
 		ncurs_fightinfo(enemy_party.characters[i], 3+i);     
 
-// currently all online partymembers are forced to join
-if(is_online(player_party.characters[0]->id))
-	ncurs_fightinfo(player_party.characters[0], 0); 
+for (int i = 0; i <= 2; i++)
+	if (player_party.characters[i]->incombat)
+		ncurs_fightinfo(player_party.characters[i], i);     
 
-if(is_online(player_party.characters[1]->id))
-	ncurs_fightinfo(player_party.characters[1], 1); 
-
-if(is_online(player_party.characters[2]->id))
-	ncurs_fightinfo(player_party.characters[2], 2);
 
 }
 

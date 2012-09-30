@@ -75,7 +75,7 @@ int fight_check_dead()
 					if (alldead)
 						{
 						player.incombat = false; // don't return to combat any more
-						ncurs_modal_msg(_("All enemies are slain! The battle is over"));
+						ncurs_log_sysmsg(_("All enemies are slain! The battle is over"));
 						return 1;					
 						}
 					// If there's enemies left, the battle continues (i.e. do nothing)
@@ -467,7 +467,11 @@ if (allready) // if everyone is ready, do combat stuff
 	if (!all_enemies_dead)
 		ac_update_fightscreen();
 	else
+		{
+		ncurs_clear_fightwindows();
+		ncurs_modal_msg(_("All enemies are slain! The battle is over"));
 		ac_dungeons();
+		}
 	}
 }
 

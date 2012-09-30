@@ -566,3 +566,14 @@ wprintw(stdscr,_("===================================================\n"));
 
 wrefresh(stdscr);
 }
+
+
+// clear all the fight windows after a fight
+void ncurs_clear_fightwindows()
+{
+for (int index = 0; index <= 5; index++)
+	{
+	wclear(fight_stat_win[index]);
+	wrefresh(fight_stat_win[index]);
+	}
+}
